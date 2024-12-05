@@ -1,5 +1,6 @@
 package com.andrea.orgazapp.orgchart.model;
 
+import com.andrea.orgazapp.orgchart.observer.OrgChartObserver;
 import java.util.*;
 
 public abstract class OrgNode {
@@ -9,11 +10,12 @@ public abstract class OrgNode {
 
     private Map<String, Role> roles = new HashMap<>();
 
-    private List<Employee> employees = new ArrayList<>(); // Lista dipendenti
-    private List<Role> rolesList = new ArrayList<>(); // Lista ruoli
+    private List<Employee> employees = new ArrayList<>();
+    private List<Role> rolesList = new ArrayList<>();
 
-    // Costruttore vuoto per Jackson
     public OrgNode() {}
+
+    private final List<OrgChartObserver> observers = new ArrayList<>();
 
     public OrgNode(String name) {
         this.name = name;
@@ -23,35 +25,38 @@ public abstract class OrgNode {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+        notifyObservers();
+    }
+
+    public void addObserver(OrgChartObserver observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(OrgChartObserver observer) {
+        observers.remove(observer);
+    }
+
+    public void notifyObservers() {
+        for (OrgChartObserver observer : observers) {
+            observer.onOrgChartUpdated();
+        }
+    }
 
     public void addChild(OrgNode node) {
         children.add(node);
+        notifyObservers();
     }
 
     public boolean removeNode(String name) {
         boolean removed = children.removeIf(node -> node.getName().equals(name));
+        if (removed) {
+            notifyObservers();
+        }
         return removed;
     }
 
-    public OrgNode findNode(String name) {
-        if (this.name.equals(name)) return this;
-        for (OrgNode child : children) {
-            OrgNode result = child.findNode(name);
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-    public void display(int level) {
-        System.out.println("  ".repeat(level) + name);
-        for (OrgNode child : children) {
-            child.display(level + 1);
-        }
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public void assignRole(Employee employee, Role role) {
         if (role == null) {
@@ -64,6 +69,7 @@ public abstract class OrgNode {
             throw new IllegalArgumentException("Ruolo non valido per questa unità organizzativa. Tipo: " + this.type);
         }
         roles.put(employee.getName(), role);
+        notifyObservers();
     }
 
 

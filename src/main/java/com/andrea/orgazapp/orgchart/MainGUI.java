@@ -5,6 +5,7 @@ import com.andrea.orgazapp.orgchart.model.Employee;
 import com.andrea.orgazapp.orgchart.model.Manager;
 import com.andrea.orgazapp.orgchart.model.OrgNode;
 import com.andrea.orgazapp.orgchart.model.Role;
+import com.andrea.orgazapp.orgchart.observer.OrgChartObserver;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
@@ -20,7 +21,7 @@ import com.andrea.orgazapp.orgchart.factory.OrgNodeFactory;
 
 import java.util.*;
 
-public class MainGUI extends Application {
+public class MainGUI extends Application implements OrgChartObserver {
     ;
     private OrgNode root;
     private OrgNode selectedNode;
@@ -52,7 +53,7 @@ public class MainGUI extends Application {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setPannable(true);
-
+        root.addObserver(this);
         updateGraphicalTree();
 
         BorderPane layout = new BorderPane();
@@ -84,6 +85,10 @@ public class MainGUI extends Application {
         });
 
         primaryStage.show();
+
+        primaryStage.setOnCloseRequest(event -> {
+            root.removeObserver(this);
+        });
     }
 
     private void handleAddRole() {
@@ -297,6 +302,8 @@ public class MainGUI extends Application {
         }
     }
 
+
+
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -304,5 +311,9 @@ public class MainGUI extends Application {
         alert.showAndWait();
     }
 
+    @Override
+    public void onOrgChartUpdated() {
+        updateGraphicalTree();
+    }
 }
 
