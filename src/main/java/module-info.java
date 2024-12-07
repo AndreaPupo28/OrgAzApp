@@ -13,5 +13,5 @@ module com.andrea.orgazapp {
 
     opens com.andrea.orgazapp to javafx.fxml;
     exports com.andrea.orgazapp;
-    exports com.andrea.orgazapp.orgchart;
+    exports com.andrea.orgazapp.orgchart.gui;
 }

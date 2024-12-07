@@ -1,4 +1,4 @@
-package com.andrea.orgazapp.orgchart;
+package com.andrea.orgazapp.orgchart.gui;
 
 import com.andrea.orgazapp.orgchart.command.*;
 import com.andrea.orgazapp.orgchart.model.Employee;
@@ -26,14 +26,15 @@ public class MainGUI extends Application implements OrgChartObserver {
     private OrgNode root;
     private OrgNode selectedNode;
     private Pane graphicalTree;
-    OrgNodeFactory factory;
+    private final OrgNodeFactory factory = new OrgNodeFactory();
     private HistoryCommandHandler commandHandler = new HistoryCommandHandler(100);
     private ScrollPane scrollPane;
-    private Map<OrgNode, Rectangle> nodeToRectangleMap = new HashMap<>();
-    private static final double NODE_HEIGHT = 50;
-    private static final double NODE_WIDTH = 150;
-    private static final double HORIZONTAL_SPACING = 50;
-    private static final double VERTICAL_SPACING = 100;
+    private GraphicalTreeManager graphicalTreeManager;
+    private Stage primaryStage;
+    private Pane graphicalTreePane;
+    private Rectangle selectedRectangle; // Rettangolo attualmente selezionato
+
+
 
     public static void main(String[] args) {
         launch(args);
@@ -41,57 +42,55 @@ public class MainGUI extends Application implements OrgChartObserver {
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+
         root = new Manager("Nodo 1");
         selectedNode = root;
-        graphicalTree = new Pane();
-        factory = new OrgNodeFactory();
+        graphicalTreePane = new Pane();
 
+        Pane graphicalTree = new Pane();
         scrollPane = new ScrollPane(graphicalTree);
-
         scrollPane.setFitToWidth(false);
         scrollPane.setFitToHeight(false);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setPannable(true);
+
+        graphicalTreeManager = new GraphicalTreeManager(this, graphicalTree, scrollPane);
+
         root.addObserver(this);
-        updateGraphicalTree();
 
         BorderPane layout = new BorderPane();
         layout.setCenter(scrollPane);
 
-        HBox controls = new HBox(10);
-        Button addUnitButton = new Button("Aggiungi Unità");
-        Button deleteUnitButton = new Button("Elimina Unità");
-        Button addRoleButton = new Button("Aggiungi Ruolo");
-        Button addEmployeeButton = new Button("Aggiungi Dipendente");
-
-        controls.getChildren().addAll(
-                addUnitButton, deleteUnitButton, addRoleButton, addEmployeeButton
-        );
-        layout.setBottom(controls);
-
-        // Eventi pulsanti
-        addUnitButton.setOnAction(e -> handleAddUnit());
-        deleteUnitButton.setOnAction(e -> handleDeleteUnit());
-        addRoleButton.setOnAction(e -> handleAddRole());
-        addEmployeeButton.setOnAction(e -> handleAddEmployee());
+        ControlBarManager controlBarManager = new ControlBarManager(this);
+        layout.setBottom(controlBarManager.createControlBar());
 
         primaryStage.setScene(new Scene(layout, 800, 600));
         primaryStage.setTitle("Organigramma Aziendale");
-        
+
         primaryStage.setOnShown(event -> {
-            updateGraphicalTree();
-            centerGraphicalTree();
+            graphicalTreeManager.updateGraphicalTree();
+            graphicalTreeManager.updateGraphicalTreeHighlight();
+            graphicalTreeManager.centerGraphicalTree();
+            ;
         });
 
         primaryStage.show();
 
-        primaryStage.setOnCloseRequest(event -> {
-            root.removeObserver(this);
+        scrollPane.viewportBoundsProperty().addListener((observable, oldValue, newValue) -> {
+            graphicalTreeManager.updateGraphicalTree();
+            graphicalTreeManager.centerGraphicalTree();
         });
+
+        primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> graphicalTreeManager.centerGraphicalTree());
+        primaryStage.heightProperty().addListener((obs, oldVal, newVal) -> graphicalTreeManager.centerGraphicalTree());
+
+        primaryStage.setOnCloseRequest(event -> root.removeObserver(this));
     }
 
-    private void handleAddRole() {
+
+    protected void handleAddRole() {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi Ruolo");
 
@@ -126,11 +125,11 @@ public class MainGUI extends Application implements OrgChartObserver {
         });
 
         dialog.showAndWait();
-        updateGraphicalTree();
+        graphicalTreeManager.updateGraphicalTree();
     }
 
 
-    private void handleAddEmployee() {
+    protected void handleAddEmployee() {
         // Ottieni i ruoli disponibili SOLO per l'unità selezionata
         List<Role> availableRoles = new ArrayList<>(selectedNode.getRolesList());
         if (availableRoles.isEmpty()) {
@@ -198,78 +197,8 @@ public class MainGUI extends Application implements OrgChartObserver {
     }
 
 
-    private void updateGraphicalTree() {
-        graphicalTree.getChildren().clear();
 
-        double contentWidth = scrollPane.getViewportBounds().getWidth();
-        double contentHeight = scrollPane.getViewportBounds().getHeight();
-
-        double startX = (contentWidth - NODE_WIDTH) / 2;
-        double startY = Math.max((contentHeight - NODE_HEIGHT) / 2, 20);
-
-        buildGraphicalTree(root, startX, startY, graphicalTree);
-    }
-
-
-    private void centerGraphicalTree() {
-        if (graphicalTree.getChildren().isEmpty()) {
-            return;
-        }
-
-        double contentWidth = graphicalTree.getBoundsInLocal().getWidth();
-        double contentHeight = graphicalTree.getBoundsInLocal().getHeight();
-        double viewportWidth = scrollPane.getViewportBounds().getWidth();
-        double viewportHeight = scrollPane.getViewportBounds().getHeight();
-
-        if (contentWidth > viewportWidth) {
-            scrollPane.setHvalue(0.5); // Centra orizzontalmente
-        }
-
-        if (contentHeight > viewportHeight) {
-            scrollPane.setVvalue(0.5); // Centra verticalmente
-        }
-    }
-
-
-    private Pane buildGraphicalTree(OrgNode node, double x, double y, Pane pane) {
-        double startX = scrollPane.getWidth() / 2 - NODE_WIDTH / 2;
-        double startY = 50;
-        return buildGraphicalSubTree(node, startX, startY, pane);
-    }
-
-    private Pane buildGraphicalSubTree(OrgNode node, double x, double y, Pane pane) {
-        Rectangle rectangle = new Rectangle(x, y, NODE_WIDTH, NODE_HEIGHT);
-        rectangle.setArcWidth(10);
-        rectangle.setArcHeight(10);
-        rectangle.setFill(Color.LIGHTBLUE);
-        rectangle.setStroke(Color.BLACK);
-
-        nodeToRectangleMap.put(node, rectangle);
-
-        Text name = new Text(node.getName());
-        name.setX(x + 10);
-        name.setY(y + 25);
-        name.setFont(Font.font("Arial", 14));
-
-        pane.getChildren().addAll(rectangle, name);
-
-        int numberOfChildren = node.children.size();
-        if (numberOfChildren > 0) {
-            double totalWidth = numberOfChildren * (NODE_WIDTH + HORIZONTAL_SPACING) - HORIZONTAL_SPACING;
-            double childStartX = x - totalWidth / 2 + NODE_WIDTH / 2;
-
-            for (OrgNode child : node.children) {
-                Line line = new Line(x + NODE_WIDTH / 2, y + NODE_HEIGHT, childStartX + NODE_WIDTH / 2, y + NODE_HEIGHT + VERTICAL_SPACING);
-                pane.getChildren().add(line);
-                buildGraphicalSubTree(child, childStartX, y + NODE_HEIGHT + VERTICAL_SPACING, pane);
-                childStartX += NODE_WIDTH + HORIZONTAL_SPACING;
-            }
-        }
-
-        return pane;
-    }
-
-    private void handleAddUnit() {
+    protected void handleAddUnit() {
 
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Aggiungi Unità");
@@ -283,11 +212,11 @@ public class MainGUI extends Application implements OrgChartObserver {
             commandHandler.handle(command);
 
             selectedNode = newUnit;
-            updateGraphicalTree();
+            graphicalTreeManager.updateGraphicalTree();
         });
     }
 
-    private void handleDeleteUnit() {
+    protected void handleDeleteUnit() {
         if(selectedNode == root){
             showAlert("Errore", "Non è possibile eliminare il nodo radice");
         }
@@ -298,13 +227,13 @@ public class MainGUI extends Application implements OrgChartObserver {
             commandHandler.handle(command);
 
             selectedNode = null; // Deseleziona dopo l'eliminazione
-            updateGraphicalTree();
+            graphicalTreeManager.updateGraphicalTree();
         }
     }
 
 
 
-    private void showAlert(String title, String message) {
+    protected void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setContentText(message);
@@ -313,7 +242,52 @@ public class MainGUI extends Application implements OrgChartObserver {
 
     @Override
     public void onOrgChartUpdated() {
-        updateGraphicalTree();
+        graphicalTreeManager.updateGraphicalTree();
     }
+
+    protected void handleUndo() {
+        commandHandler.undo();
+        graphicalTreeManager.updateGraphicalTree();
+    }
+
+    protected void handleRedo() {
+        commandHandler.redo();
+        graphicalTreeManager.updateGraphicalTree();
+    }
+
+    public OrgNode getRoot() {
+        return root;
+    }
+
+    public void setRoot(OrgNode orgNode) {
+        root = orgNode;
+    }
+
+    public void setSelectedNode(OrgNode node) {
+        selectedNode = node;
+    }
+
+
+    public OrgNode getSelectedNode() {
+        return selectedNode;
+    }
+
+    public GraphicalTreeManager getGraphicalTreeManager() {
+        return graphicalTreeManager;
+    }
+
+    public void setSelectedRectangle(Rectangle rectangle) {
+        selectedRectangle = rectangle;
+    }
+
+    public CommandHandler getCommandHandler() {
+        return commandHandler;
+    }
+
+    public Stage getPrimaryStage() {
+        return primaryStage;
+    }
+
+
 }
 
