@@ -1,10 +1,7 @@
 package com.andrea.orgazapp.orgchart.gui;
 
 import com.andrea.orgazapp.orgchart.command.*;
-import com.andrea.orgazapp.orgchart.model.Employee;
-import com.andrea.orgazapp.orgchart.model.Manager;
-import com.andrea.orgazapp.orgchart.model.OrgNode;
-import com.andrea.orgazapp.orgchart.model.Role;
+import com.andrea.orgazapp.orgchart.model.*;
 import com.andrea.orgazapp.orgchart.observer.OrgChartObserver;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -26,13 +23,13 @@ public class MainGUI extends Application implements OrgChartObserver {
     private OrgNode root;
     private OrgNode selectedNode;
     private Pane graphicalTree;
-    private final OrgNodeFactory factory = new OrgNodeFactory();
     private HistoryCommandHandler commandHandler = new HistoryCommandHandler(100);
     private ScrollPane scrollPane;
     private GraphicalTreeManager graphicalTreeManager;
     private Stage primaryStage;
     private Pane graphicalTreePane;
     private Rectangle selectedRectangle; // Rettangolo attualmente selezionato
+    private final Map<String, String> roleTypeMap = new HashMap<>();
 
 
 
@@ -91,6 +88,9 @@ public class MainGUI extends Application implements OrgChartObserver {
 
 
     protected void handleAddRole() {
+
+        String unitType = selectedNode.getType();
+
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi Ruolo");
 
@@ -109,23 +109,32 @@ public class MainGUI extends Application implements OrgChartObserver {
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
                 String roleName = roleNameField.getText();
+
                 if (roleName == null || roleName.trim().isEmpty()) {
                     showAlert("Errore", "Il nome del ruolo non può essere vuoto.");
                     return null;
                 }
-
-                Role role = new Role(roleName, Set.of(selectedNode.getType()));
-
-                // Usa il comando AddRoleCommand per aggiungere il ruolo
+                if (roleTypeMap.containsKey(roleName)) {
+                    String associatedType = roleTypeMap.get(roleName);
+                    if (!associatedType.equals(unitType)) {
+                        showAlert("Errore", "Il ruolo \"" + roleName + "\" è già associato a un'unità di tipo " + associatedType + ".");
+                        return null;
+                    }
+                } else {
+                    roleTypeMap.put(roleName, unitType);
+                }
+                Role role = new Role(roleName, Set.of(unitType));
                 AddRoleCommand command = new AddRoleCommand(selectedNode, role);
-                commandHandler.handle(command); // Registra il comando per undo/redo
+                commandHandler.handle(command);
+
                 return null;
             }
             return null;
         });
 
         dialog.showAndWait();
-        graphicalTreeManager.updateGraphicalTree();
+
+        graphicalTreeManager.updateGraphicalTreeHighlight();
     }
 
 
@@ -200,19 +209,52 @@ public class MainGUI extends Application implements OrgChartObserver {
 
     protected void handleAddUnit() {
 
-        TextInputDialog dialog = new TextInputDialog();
+        Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi Unità");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Nome della nuova unità:");
+        dialog.setHeaderText("Inserisci il nome per la nuova unità:");
+
+        TextField unitNameField = new TextField();
+        unitNameField.setPromptText("Nome dell'unità");
+
+        String availableType;
+        if (selectedNode instanceof Manager) {
+            availableType = "Department";
+        } else if (selectedNode instanceof Department) {
+            availableType = "Workgroup";
+        } else {
+            showAlert("Errore", "I gruppi di lavoro non possono avere figli.");
+            return;
+        }
+
+        Label typeLabel = new Label("Tipo di unità: " + availableType);
+
+        VBox content = new VBox(10, new Label("Nome dell'unità:"), unitNameField, typeLabel);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(button -> {
+            if (button == ButtonType.OK) {
+                String name = unitNameField.getText();
+                if (name == null || name.trim().isEmpty()) {
+                    showAlert("Errore", "Il nome dell'unità non può essere vuoto.");
+                    return null;
+                }
+                return name;
+            }
+            return null;
+        });
 
         dialog.showAndWait().ifPresent(name -> {
+            try {
+                OrgNode newUnit = OrgNodeFactory.createNode(availableType, name);
+                AddNodeCommand command = new AddNodeCommand(selectedNode, newUnit);
+                commandHandler.handle(command);
 
-            OrgNode newUnit = factory.createNode("Manager", name);
-            AddNodeCommand command = new AddNodeCommand(selectedNode, newUnit);
-            commandHandler.handle(command);
-
-            selectedNode = newUnit;
-            graphicalTreeManager.updateGraphicalTree();
+                graphicalTreeManager.updateGraphicalTree();
+                graphicalTreeManager.updateGraphicalTreeHighlight();
+            } catch (IllegalArgumentException e) {
+                showAlert("Errore", e.getMessage());
+            }
         });
     }
 
