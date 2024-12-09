@@ -5,10 +5,10 @@ import javafx.scene.layout.HBox;
 
 public class ControlBarManager {
 
-    private final MainGUI mainGUI;
+    private final OrgChartApp app;
 
-    public ControlBarManager(MainGUI mainGUI) {
-        this.mainGUI = mainGUI;
+    public ControlBarManager(OrgChartApp app) {
+        this.app = app;
     }
 
     public HBox createControlBar() {
@@ -22,12 +22,12 @@ public class ControlBarManager {
         Button redoButton = new Button("Redo");
 
         // Aggiungi eventi ai pulsanti
-        addUnitButton.setOnAction(e -> mainGUI.handleAddUnit());
-        addRoleButton.setOnAction(e -> mainGUI.handleAddRole());
-        addEmployeeButton.setOnAction(e -> mainGUI.handleAddEmployee());
-        deleteUnitButton.setOnAction(e -> mainGUI.handleDeleteUnit());
-        undoButton.setOnAction(e -> mainGUI.handleUndo());
-        redoButton.setOnAction(e -> mainGUI.handleRedo());
+        addUnitButton.setOnAction(e -> app.handleAddUnit());
+        addRoleButton.setOnAction(e -> app.handleAddRole());
+        addEmployeeButton.setOnAction(e -> app.handleAddEmployee());
+        deleteUnitButton.setOnAction(e -> app.handleDeleteUnit());
+        undoButton.setOnAction(e -> app.handleUndo());
+        redoButton.setOnAction(e -> app.handleRedo());
 
         controls.getChildren().addAll(
                 addUnitButton, addRoleButton, addEmployeeButton, deleteUnitButton, undoButton, redoButton

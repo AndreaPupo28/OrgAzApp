@@ -16,14 +16,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class GraphicalTreeManager {
 
-
-    private final MainGUI mainGUI;
+    private final OrgChartApp app;
     private final Pane graphicalTree;
     private final ScrollPane scrollPane;
     private final Map<OrgNode, Rectangle> nodeToRectangleMap = new HashMap<>();
@@ -33,8 +31,8 @@ public class GraphicalTreeManager {
     private static final double HORIZONTAL_SPACING = 50;
     private static final double VERTICAL_SPACING = 100;
 
-    public GraphicalTreeManager(MainGUI mainGUI, Pane graphicalTree, ScrollPane scrollPane) {
-        this.mainGUI = mainGUI;
+    public GraphicalTreeManager(OrgChartApp app, Pane graphicalTree, ScrollPane scrollPane) {
+        this.app = app;
         this.graphicalTree = graphicalTree;
         this.scrollPane = scrollPane;
     }
@@ -47,9 +45,9 @@ public class GraphicalTreeManager {
         double startX = (contentWidth - NODE_WIDTH) / 2;
         double startY = 20;
 
-        BoundingBox bounds = buildGraphicalTree(mainGUI.getRoot(), startX, startY, graphicalTree);
+        BoundingBox bounds = buildGraphicalTree(app.getRoot(), startX, startY, graphicalTree);
 
-        double margin = 50; // Extra margin
+        double margin = 50;
         graphicalTree.setMinWidth(bounds.getWidth() + margin * 2);
         graphicalTree.setMinHeight(bounds.getHeight() + margin * 2);
 
@@ -96,16 +94,18 @@ public class GraphicalTreeManager {
 
         MenuItem showEmployeesItem = new MenuItem("Mostra Dipendenti");
         showEmployeesItem.setOnAction(e -> {
-            mainGUI.setSelectedNode(node);
-            mainGUI.setSelectedRectangle(rectangle);
+            app.setSelectedNode(node);
+            app.setSelectedRectangle(rectangle);
             updateGraphicalTreeHighlight();
+            app.getTableManager().showEmployeeTable();
         });
 
         MenuItem showRolesItem = new MenuItem("Mostra Ruoli");
         showRolesItem.setOnAction(e -> {
-            mainGUI.setSelectedNode(node);
-            mainGUI.setSelectedRectangle(rectangle);
+            app.setSelectedNode(node);
+            app.setSelectedRectangle(rectangle);
             updateGraphicalTreeHighlight();
+            app.getTableManager().showRoleTable();
         });
 
         MenuItem renameNodeItem = new MenuItem("Modifica Nome");
@@ -117,18 +117,17 @@ public class GraphicalTreeManager {
 
             dialog.showAndWait().ifPresent(newName -> {
                 if (newName == null || newName.trim().isEmpty()) {
-                    mainGUI.showAlert("Errore", "Il nome del nodo non può essere vuoto.");
+                    app.showAlert("Errore", "Il nome del nodo non può essere vuoto.");
                 } else {
-                    // Use the ModifyNodeNameCommand for renaming
                     ModifyNodeNameCommand command = new ModifyNodeNameCommand(node, node.getName(), newName);
                     try {
-                        mainGUI.getCommandHandler().handle(command);
-                        name.setText(newName); // Update the graphical representation
-                        mainGUI.setSelectedNode(node);
-                        mainGUI.setSelectedRectangle(rectangle);
+                        app.getCommandHandler().handle(command);
+                        name.setText(newName);
+                        app.setSelectedNode(node);
+                        app.setSelectedRectangle(rectangle);
                         updateGraphicalTreeHighlight();
                     } catch (Exception ex) {
-                        mainGUI.showAlert("Errore", "Impossibile modificare il nome del nodo.");
+                        app.showAlert("Errore", "Impossibile modificare il nome del nodo.");
                     }
                 }
             });
@@ -140,9 +139,10 @@ public class GraphicalTreeManager {
                 contextMenu.show(rectangle, event.getScreenX(), event.getScreenY()));
 
         rectangle.setOnMouseClicked(event -> {
-            mainGUI.setSelectedNode(node);
-            mainGUI.setSelectedRectangle(rectangle);
+            app.setSelectedNode(node);
+            app.setSelectedRectangle(rectangle);
             updateGraphicalTreeHighlight();
+            app.updateTables();
         });
 
         int numberOfChildren = node.children.size();
@@ -161,8 +161,8 @@ public class GraphicalTreeManager {
             }
         }
 
-        if (mainGUI.getSelectedNode() == node) {
-            mainGUI.setSelectedRectangle(rectangle);
+        if (app.getSelectedNode() == node) {
+            app.setSelectedRectangle(rectangle);
             updateGraphicalTreeHighlight();
         }
 
@@ -172,7 +172,7 @@ public class GraphicalTreeManager {
     protected void updateGraphicalTreeHighlight() {
         for (Map.Entry<OrgNode, Rectangle> entry : nodeToRectangleMap.entrySet()) {
             Rectangle rect = entry.getValue();
-            if (entry.getKey().equals(mainGUI.getSelectedNode())) {
+            if (entry.getKey().equals(app.getSelectedNode())) {
                 rect.setFill(Color.LIGHTGREEN);
             } else {
                 rect.setFill(Color.LIGHTBLUE);
@@ -182,7 +182,7 @@ public class GraphicalTreeManager {
 
     protected void centerGraphicalTree() {
         if (graphicalTree == null || graphicalTree.getChildren().isEmpty()) {
-            return; // Non centra se il contenitore grafico è vuoto o non inizializzato
+            return;
         }
 
         double contentWidth = graphicalTree.getBoundsInLocal().getWidth();
@@ -190,13 +190,12 @@ public class GraphicalTreeManager {
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
         double viewportHeight = scrollPane.getViewportBounds().getHeight();
 
-        // Calcolo centratura orizzontale e verticale
         double horizontalOffset = (contentWidth > viewportWidth) ? 0.5 : 0.0;
         double verticalOffset = (contentHeight > viewportHeight) ? 0.5 : 0.0;
 
-        // Applica i valori di centratura
         scrollPane.setHvalue(horizontalOffset);
         scrollPane.setVvalue(verticalOffset);
     }
+
 
 }
