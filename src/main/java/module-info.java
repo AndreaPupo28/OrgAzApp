@@ -10,10 +10,12 @@ module com.andrea.orgazapp {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.annotation;
+    requires java.management;
 
-    opens com.andrea.orgazapp to javafx.fxml;
-    exports com.andrea.orgazapp;
+    exports com.andrea.orgazapp.orgchart.model to com.fasterxml.jackson.databind;
+    opens com.andrea.orgazapp.orgchart.model to com.fasterxml.jackson.databind, javafx.base;
     exports com.andrea.orgazapp.orgchart.gui;
-    opens com.andrea.orgazapp.orgchart.model to javafx.base;
 
 }

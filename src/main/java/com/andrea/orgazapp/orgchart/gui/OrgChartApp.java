@@ -3,6 +3,7 @@ package com.andrea.orgazapp.orgchart.gui;
 import com.andrea.orgazapp.orgchart.command.*;
 import com.andrea.orgazapp.orgchart.factory.OrgNodeFactory;
 import com.andrea.orgazapp.orgchart.model.*;
+import com.andrea.orgazapp.orgchart.memento.OrgChartCaretaker;
 import com.andrea.orgazapp.orgchart.observer.OrgChartObserver;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
@@ -27,6 +28,8 @@ public class OrgChartApp implements OrgChartObserver {
     private ScrollPane scrollPane; // ScrollPane per il contenitore dell'organigramma
     private Stage primaryStage;
     private Pane graphicalTreePane;
+    private final OrgChartCaretaker caretaker;
+
 
     public OrgChartApp(Stage primaryStage) {
         root = new Manager("Organo di gestione");
@@ -34,6 +37,7 @@ public class OrgChartApp implements OrgChartObserver {
         commandHandler = new HistoryCommandHandler(100);
         tableManager = new TableManager(this);
         graphicalTreeManager = new GraphicalTreeManager(this, new VBox(), scrollPane);
+        caretaker = new OrgChartCaretaker();
         setupUI(primaryStage);
     }
 
@@ -58,6 +62,9 @@ public class OrgChartApp implements OrgChartObserver {
 
         BorderPane layout = new BorderPane();
         layout.setCenter(scrollPane);
+
+        MenuBarManager menuBarManager = new MenuBarManager(this);
+        layout.setTop(menuBarManager.createMenuBar());
 
         ControlBarManager controlBarManager = new ControlBarManager(this);
         layout.setBottom(controlBarManager.createControlBar());
@@ -327,6 +334,10 @@ public class OrgChartApp implements OrgChartObserver {
 
     public CommandHandler getCommandHandler() {
         return commandHandler;
+    }
+
+    public OrgChartCaretaker getCaretaker() {
+        return caretaker;
     }
 
     @Override

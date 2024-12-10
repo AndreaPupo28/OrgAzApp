@@ -2,8 +2,24 @@ package com.andrea.orgazapp.orgchart.model;
 
 import com.andrea.orgazapp.orgchart.observer.OrgChartObserver;
 import java.util.*;
+import com.andrea.orgazapp.orgchart.memento.Memento;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.andrea.orgazapp.orgchart.memento.Originator;
 
-public abstract class OrgNode {
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Manager.class, name = "Manager"),
+        @JsonSubTypes.Type(value = Employee.class, name = "Employee"),
+        @JsonSubTypes.Type(value = Department.class, name = "Department"),
+        @JsonSubTypes.Type(value = WorkGroup.class, name = "WorkGroup")
+})
+public abstract class OrgNode implements Originator{
     protected String name;
     public List<OrgNode> children = new ArrayList<>();
     protected String type;
@@ -90,6 +106,10 @@ public abstract class OrgNode {
         return rolesList;
     }
 
+    public List<OrgNode> getChildren() {
+        return children;
+    }
+
     public void addEmployee(Employee employee) {
         Optional<Employee> existingEmployee = employees.stream()
                 .filter(e -> e.getName().equalsIgnoreCase(employee.getName()))
@@ -122,5 +142,50 @@ public abstract class OrgNode {
         }
         return null;
     }
+
+    @Override
+    public Memento saveToMemento() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonState = mapper.writeValueAsString(this);
+            return new OrgNodeMemento(jsonState);
+        } catch (Exception e) {
+            throw new RuntimeException("Errore durante la creazione del Memento", e);
+        }
+    }
+
+    @Override
+    public void restoreFromMemento(Memento memento) {
+        if (!(memento instanceof OrgNodeMemento)) {
+            throw new IllegalArgumentException("Memento non valido.");
+        }
+
+        OrgNodeMemento orgNodeMemento = (OrgNodeMemento) memento;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            OrgNode restoredNode = mapper.readValue(orgNodeMemento.getState(), this.getClass());
+            this.name = restoredNode.name;
+            this.children = restoredNode.children;
+            this.type = restoredNode.type;
+            this.roles = restoredNode.roles;
+            this.employees = restoredNode.employees;
+            this.rolesList = restoredNode.rolesList;
+        } catch (Exception e) {
+            throw new RuntimeException("Errore durante il ripristino del Memento", e);
+        }
+    }
+
+    private static class OrgNodeMemento implements Memento {
+        private final String state;
+
+        OrgNodeMemento(String state) {
+            this.state = state;
+        }
+
+        String getState() {
+            return state;
+        }
+    }
+
 
 }
