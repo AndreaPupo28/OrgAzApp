@@ -93,6 +93,10 @@ public class OrgChartApp implements OrgChartObserver {
     }
 
 
+    private boolean isNodeSelected() {
+        return selectedNode != null;
+    }
+
 
     protected void handleAddRole() {
 
@@ -101,7 +105,6 @@ public class OrgChartApp implements OrgChartObserver {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi Ruolo");
 
-        // Campi di input
         TextField roleNameField = new TextField();
         roleNameField.setPromptText("Nome del ruolo");
 
@@ -146,6 +149,10 @@ public class OrgChartApp implements OrgChartObserver {
 
 
     protected void handleAddEmployee() {
+        if (!isNodeSelected()) {
+            showAlert("Errore", "Seleziona un'unità a cui aggiungere un dipendente.");
+            return;
+        }
         List<Role> availableRoles = new ArrayList<>(selectedNode.getRolesList());
         if (availableRoles.isEmpty()) {
             showAlert("Errore", "Non ci sono ruoli disponibili per questa unità.");
@@ -155,7 +162,6 @@ public class OrgChartApp implements OrgChartObserver {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi Dipendente");
 
-        // Campi di input
         TextField employeeNameField = new TextField();
         employeeNameField.setPromptText("Nome del dipendente");
 
@@ -196,19 +202,27 @@ public class OrgChartApp implements OrgChartObserver {
                     return null;
                 }
 
-                Employee newEmployee = new Employee(employeeName);
+                boolean employeeExists = selectedNode.getEmployees().stream()
+                        .anyMatch(employee -> employee.getName().equalsIgnoreCase(employeeName));
+                if (employeeExists) {
+                    showAlert("Errore", "Esiste già un dipendente con questo nome in questa unità.");
+                    return null;
+                }
 
+                Employee newEmployee = new Employee(employeeName);
                 AddEmployeeCommand command = new AddEmployeeCommand(selectedNode, newEmployee, selectedRole);
                 commandHandler.handle(command);
+
                 return null;
             }
             return null;
         });
 
         dialog.showAndWait();
+
+        graphicalTreeManager.updateGraphicalTreeHighlight();
+        updateTables();
     }
-
-
 
     protected void handleAddUnit() {
 
