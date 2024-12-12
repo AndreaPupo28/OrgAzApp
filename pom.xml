@@ -133,7 +133,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.andrea.orgazapp/com.andrea.orgazapp.HelloApplication</mainClass>
+                            <mainClass>com.andrea.orgazapp/com.andrea.orgazapp.orgchart.gui.MainGUI</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
