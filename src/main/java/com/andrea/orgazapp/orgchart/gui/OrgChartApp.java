@@ -225,6 +225,10 @@ public class OrgChartApp implements OrgChartObserver {
     }
 
     protected void handleAddUnit() {
+        if (!isNodeSelected()) {
+            showAlert("Errore", "Seleziona un'unità a cui aggiungere un figlio.");
+            return;
+        }
 
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Aggiungi Unità");
@@ -262,6 +266,11 @@ public class OrgChartApp implements OrgChartObserver {
         });
 
         dialog.showAndWait().ifPresent(name -> {
+            if (root.containsNodeWithName(name)) {
+                showAlert("Errore", "Un'unità con questo nome esiste già.");
+                return;
+            }
+
             try {
                 OrgNode newUnit = OrgNodeFactory.createNode(availableType, name);
                 AddNodeCommand command = new AddNodeCommand(selectedNode, newUnit);
@@ -273,6 +282,8 @@ public class OrgChartApp implements OrgChartObserver {
                 showAlert("Errore", e.getMessage());
             }
         });
+
+        updateTables();
     }
 
     protected void handleDeleteUnit() {

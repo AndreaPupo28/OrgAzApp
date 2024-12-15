@@ -13,6 +13,10 @@ public class AddNodeCommand implements Command {
 
     @Override
     public boolean doIt() {
+        if (parentNode.containsNodeWithName(newNode.getName())) {
+            System.out.println("Errore: Un nodo con questo nome esiste già.");
+            return false;
+        }
         parentNode.addChild(newNode);
         return true;
     }
@@ -29,3 +33,4 @@ public class AddNodeCommand implements Command {
     }
 
 }
+

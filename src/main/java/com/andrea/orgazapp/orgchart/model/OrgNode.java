@@ -24,7 +24,7 @@ public abstract class OrgNode implements Originator{
     public List<OrgNode> children = new ArrayList<>();
     protected String type;
 
-    private Map<String, Role> roles = new HashMap<>();
+    private Map<String, Role> roles = new HashMap<>(); //definisce i ruoli associati ai dipendenti (nomi)
 
     private List<Employee> employees = new ArrayList<>();
     private List<Role> rolesList = new ArrayList<>();
@@ -173,6 +173,18 @@ public abstract class OrgNode implements Originator{
         } catch (Exception e) {
             throw new RuntimeException("Errore durante il ripristino del Memento", e);
         }
+    }
+
+    public boolean containsNodeWithName(String name) {
+        if (this.name.equalsIgnoreCase(name)) {
+            return true;
+        }
+        for (OrgNode child : children) {
+            if (child.containsNodeWithName(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class OrgNodeMemento implements Memento {

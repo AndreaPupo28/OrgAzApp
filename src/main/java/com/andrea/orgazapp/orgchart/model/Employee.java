@@ -13,7 +13,7 @@ public class Employee extends OrgNode {
 
     @Override
     public String toString() {
-        return getName(); // Mostra il nome del dipendente
+        return getName();
     }
 
 }
