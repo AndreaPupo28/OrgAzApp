@@ -11,7 +11,7 @@ import java.util.Map;
 public class RemoveRoleCommand implements Command {
     private final OrgNode node;
     private final Role role;
-    private final Map<Employee, Role> removedEmployees = new HashMap<>(); // Per ripristinare con undo
+    private final Map<Employee, Role> removedEmployeeRoles = new HashMap<>(); // Per ripristinare con undo
 
     public RemoveRoleCommand(OrgNode node, Role role) {
         this.node = node;
@@ -21,15 +21,16 @@ public class RemoveRoleCommand implements Command {
     @Override
     public boolean doIt() {
         try {
-            node.getEmployees().removeIf(employee -> {
-                Role assignedRole = node.getRoles().get(employee);
+            node.getEmployees().forEach(employee -> {
+                Role assignedRole = node.getRoles().get(employee.getName());
                 if (assignedRole != null && assignedRole.equals(role)) {
-                    removedEmployees.put(employee, assignedRole);
-                    return true;
+                    removedEmployeeRoles.put(employee, assignedRole);
+                    node.getRoles().remove(employee.getName());
                 }
-                return false;
             });
-            return node.getRolesList().remove(role);
+
+            node.getRolesList().removeIf(r -> r.getName().equalsIgnoreCase(role.getName()));
+            return true;
         } catch (Exception e) {
             return false;
         }
@@ -38,8 +39,12 @@ public class RemoveRoleCommand implements Command {
     @Override
     public boolean undoIt() {
         try {
-            node.getRolesList().add(role);
-            removedEmployees.forEach(node::assignRole);
+            node.addRole(role);
+            removedEmployeeRoles.forEach((employee, restoredRole) -> {
+                node.getRoles().put(employee.getName(), restoredRole);
+            });
+
+            removedEmployeeRoles.clear();
             return true;
         } catch (Exception e) {
             return false;

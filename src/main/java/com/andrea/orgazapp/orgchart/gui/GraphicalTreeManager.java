@@ -37,7 +37,7 @@ public class GraphicalTreeManager {
         this.scrollPane = scrollPane;
     }
 
-    public void updateGraphicalTree() {
+    protected void updateGraphicalTree() {
         graphicalTree.getChildren().clear();
 
         double contentWidth = scrollPane.getViewportBounds().getWidth();
@@ -118,7 +118,10 @@ public class GraphicalTreeManager {
             dialog.showAndWait().ifPresent(newName -> {
                 if (newName == null || newName.trim().isEmpty()) {
                     app.showAlert("Errore", "Il nome del nodo non può essere vuoto.");
-                } else {
+                } else if (isNodeNameDuplicate(newName, app.getRoot(), node)) {
+                    app.showAlert("Errore", "Un nodo con questo nome esiste già.");
+                }
+                else {
                     ModifyNodeNameCommand command = new ModifyNodeNameCommand(node, node.getName(), newName);
                     try {
                         app.getCommandHandler().handle(command);
@@ -145,12 +148,12 @@ public class GraphicalTreeManager {
             app.updateTables();
         });
 
-        int numberOfChildren = node.children.size();
+        int numberOfChildren = node.getChildren().size();
         if (numberOfChildren > 0) {
             double totalWidth = numberOfChildren * (NODE_WIDTH + HORIZONTAL_SPACING) - HORIZONTAL_SPACING;
             double childStartX = x - totalWidth / 2 + NODE_WIDTH / 2;
 
-            for (OrgNode child : node.children) {
+            for (OrgNode child : node.getChildren()) {
                 Line line = new Line(
                         x + NODE_WIDTH / 2, y + NODE_HEIGHT,
                         childStartX + NODE_WIDTH / 2, y + NODE_HEIGHT + VERTICAL_SPACING
@@ -168,6 +171,19 @@ public class GraphicalTreeManager {
 
         return pane;
     }
+
+    private boolean isNodeNameDuplicate(String name, OrgNode rootNode, OrgNode currentNode) {
+        if (rootNode.getName().equalsIgnoreCase(name) && !rootNode.equals(currentNode)) {
+            return true;
+        }
+        for (OrgNode child : rootNode.getChildren()) {
+            if (isNodeNameDuplicate(name, child, currentNode)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     protected void updateGraphicalTreeHighlight() {
         for (Map.Entry<OrgNode, Rectangle> entry : nodeToRectangleMap.entrySet()) {
