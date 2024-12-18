@@ -2,7 +2,7 @@ package com.andrea.orgazapp.orgchart.factory;
 
 
 import com.andrea.orgazapp.orgchart.model.Department;
-import com.andrea.orgazapp.orgchart.model.Manager;
+import com.andrea.orgazapp.orgchart.model.Management;
 import com.andrea.orgazapp.orgchart.model.OrgNode;
 import com.andrea.orgazapp.orgchart.model.WorkGroup;
 
@@ -12,7 +12,7 @@ public class OrgNodeFactory {
         OrgNode node;
         switch (type.toLowerCase()) {
             case "manager":
-                node = new Manager(name);
+                node = new Management(name);
                 break;
             case "department":
                 node = new Department(name);

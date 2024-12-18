@@ -10,4 +10,14 @@ public class WorkGroup extends OrgNode {
         super(name);
         this.type = "WorkGroup";
     }
+
+    @Override
+    public void addChild(OrgNode node) {
+        throw new UnsupportedOperationException("Un WorkGroup non può avere figli.");
+    }
+
+    @Override
+    public boolean removeNode(String name) {
+        throw new UnsupportedOperationException("Un WorkGroup non può rimuovere figli.");
+    }
 }

@@ -1,6 +1,7 @@
 package com.andrea.orgazapp.orgchart.model;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class Role {
@@ -13,15 +14,14 @@ public class Role {
         }
         this.name = name;
         this.applicableUnits = (applicableUnits == null || applicableUnits.isEmpty())
-                ? Set.of("Default") // Fallback
+                ? Set.of("DefaultUnit")
                 : applicableUnits;
     }
 
-    public Role() {
-        this.name = ""; // Valore di fallback
+    public Role() { //costruttore per Jackson
+        this.name = "";
         this.applicableUnits = new HashSet<>();
     }
-
 
     public String getName() {
         return name;
@@ -31,9 +31,8 @@ public class Role {
         if (unitType == null) {
             return false;
         }
-        return applicableUnits != null && applicableUnits.contains(unitType);
+        return applicableUnits.contains(unitType);
     }
-
 
     public void setName(String name) {
         this.name = name;
@@ -42,6 +41,19 @@ public class Role {
     @Override
     public String toString() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Role role = (Role) obj;
+        return name.equalsIgnoreCase(role.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name.toLowerCase());
     }
 
 }
