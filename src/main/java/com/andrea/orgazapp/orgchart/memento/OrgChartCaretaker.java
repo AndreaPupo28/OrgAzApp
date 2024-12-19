@@ -2,6 +2,7 @@ package com.andrea.orgazapp.orgchart.memento;
 
 
 import com.andrea.orgazapp.orgchart.model.OrgNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -16,6 +17,7 @@ public class OrgChartCaretaker {
     public OrgChartCaretaker() {
         this.mapper = new ObjectMapper();
         this.mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        this.mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
     }
 
 
@@ -41,7 +43,10 @@ public class OrgChartCaretaker {
         try {
             String json = Files.readString(Paths.get(filePath));
             System.out.println(json);
-
+            json = json.replaceAll("\"employees\"\\s*:\\s*\\[\\s*\\{\\s*\"name\"\\s*:\\s*\"(.*?)\"\\s*}\\s*]",
+                    "\"employees\": { \"$1\": { \"name\": \"$1\" } }");
+            json = json.replaceAll("\"rolesList\"\\s*:\\s*\\[\\s*\\{\\s*\"name\"\\s*:\\s*\"(.*?)\"\\s*}\\s*]",
+                    "\"rolesList\": { \"$1\": { \"name\": \"$1\" } }");
             return mapper.readValue(json, rootType);
 
         } catch (IOException e) {

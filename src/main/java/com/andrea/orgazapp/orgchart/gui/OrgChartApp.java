@@ -32,7 +32,7 @@ public class OrgChartApp implements OrgChartObserver {
 
 
     public OrgChartApp(Stage primaryStage) {
-        root = new Manager("Organo di gestione");
+        root = new Management("Organo di gestione");
         selectedNode = root;
         commandHandler = new HistoryCommandHandler(100);
         tableManager = new TableManager(this);
@@ -44,7 +44,6 @@ public class OrgChartApp implements OrgChartObserver {
     private void setupUI(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        root = new Manager("Nodo 1");
         selectedNode = root;
         graphicalTreePane = new Pane();
 
@@ -238,7 +237,7 @@ public class OrgChartApp implements OrgChartObserver {
         unitNameField.setPromptText("Nome dell'unità");
 
         String availableType;
-        if (selectedNode instanceof Manager) {
+        if (selectedNode instanceof Management) {
             availableType = "Department";
         } else if (selectedNode instanceof Department) {
             availableType = "Workgroup";
