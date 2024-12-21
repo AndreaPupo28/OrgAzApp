@@ -47,11 +47,25 @@ public class TableManager {
             if (newName == null || newName.trim().isEmpty()) {
                 app.showAlert("Errore", "Il nome del ruolo non può essere vuoto.");
             } else {
-                Command command = new ModifyRoleCommand(app.getSelectedNode(), role, newName);
-                app.getCommandHandler().handle(command);
-                updateRoleTable(app.getSelectedNode());
+                boolean nameExistsInCurrentTable = roleTable.getItems().stream()
+                        .anyMatch(existingRole -> !existingRole.equals(role) && existingRole.getName().equalsIgnoreCase(newName));
+
+                boolean nameExistsInOtherUnits = checkRoleNameInOtherUnits(newName);
+
+                if (nameExistsInCurrentTable) {
+                    app.showAlert("Errore", "Un ruolo con questo nome esiste già nella tabella corrente.");
+                    roleTable.refresh();
+                } else if (nameExistsInOtherUnits) {
+                    app.showAlert("Errore", "Un ruolo con questo nome esiste già in un'altra unità di tipo differente.");
+                    roleTable.refresh();
+                } else {
+                    Command command = new ModifyRoleCommand(app.getSelectedNode(), role, newName);
+                    app.getCommandHandler().handle(command);
+                    updateRoleTable(app.getSelectedNode());
+                }
             }
         });
+
 
         // Colonna Azione: Eliminazione
         TableColumn<Role, String> roleActionCol = new TableColumn<>("Azione");
@@ -95,8 +109,13 @@ public class TableManager {
                         dialog.setContentText("Nuovo nome:");
 
                         dialog.showAndWait().ifPresent(newName -> {
-                            if (newName == null || newName.trim().isEmpty()) {
+                            if (newName.trim().isEmpty()) {
                                 app.showAlert("Errore", "Il nome del ruolo non può essere vuoto.");
+                            } else if (roleTable.getItems().stream()
+                                    .anyMatch(existingRole -> !existingRole.equals(role) && existingRole.getName().equalsIgnoreCase(newName))) {
+                                app.showAlert("Errore", "Un ruolo con questo nome esiste già nella tabella corrente.");
+                            } else if (checkRoleNameInOtherUnits(newName)) {
+                                app.showAlert("Errore", "Un ruolo con questo nome esiste già in un'altra unità di tipo differente.");
                             } else {
                                 Command command = new ModifyRoleCommand(app.getSelectedNode(), role, newName);
                                 app.getCommandHandler().handle(command);
@@ -104,6 +123,7 @@ public class TableManager {
                             }
                         });
                     });
+
                 }
             }
         });
@@ -114,6 +134,27 @@ public class TableManager {
         roleTable.setEditable(true);
     }
 
+    private boolean checkRoleNameInOtherUnits(String roleName) {
+        OrgNode root = app.getRoot();
+        return checkRoleNameRecursively(root, roleName, app.getSelectedNode().getType());
+    }
+
+    private boolean checkRoleNameRecursively(OrgNode node, String roleName, String currentUnitType) {
+        if (node == null) {
+            return false;
+        }
+        boolean roleExists = node.getRolesList().stream()
+                .anyMatch(role -> role.getName().equalsIgnoreCase(roleName) && !node.getType().equals(currentUnitType));
+        if (roleExists) {
+            return true;
+        }
+        for (OrgNode child : node.getChildren()) {
+            if (checkRoleNameRecursively(child, roleName, currentUnitType)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     protected void setupEmployeeTable() {
         employeeTable = new TableView<>();
@@ -122,7 +163,6 @@ public class TableManager {
         TableColumn<Employee, String> empNameCol = new TableColumn<>("Nome");
         empNameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        // Abilita l'editing inline per il nome
         empNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
         empNameCol.setOnEditCommit(event -> {
             Employee employee = event.getRowValue();
@@ -248,9 +288,8 @@ public class TableManager {
         });
 
         employeeTable.getColumns().addAll(empNameCol, empRoleCol, empActionCol, empEditCol);
-        employeeTable.setEditable(true); // Abilita l'editing della tabella
+        employeeTable.setEditable(true);
     }
-
 
     public void updateEmployeeTable(OrgNode selectedNode) {
         if (selectedNode != null) {

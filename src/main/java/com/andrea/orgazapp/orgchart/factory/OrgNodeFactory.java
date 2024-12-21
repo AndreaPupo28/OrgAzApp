@@ -11,7 +11,7 @@ public class OrgNodeFactory {
     public static OrgNode createNode(String type, String name) {
         OrgNode node;
         switch (type.toLowerCase()) {
-            case "manager":
+            case "management":
                 node = new Management(name);
                 break;
             case "department":

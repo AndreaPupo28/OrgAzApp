@@ -25,7 +25,11 @@ public class MenuBarManager {
         saveMenuItem.setOnAction(e -> handleSave());
         loadMenuItem.setOnAction(e -> handleLoad());
 
-        menuBar.getMenus().add(fileMenu);
+        Menu infoMenu = new Menu("Info");
+        MenuItem aboutMenuItem = new MenuItem("About");
+        aboutMenuItem.setOnAction(e -> showInfoDialog());
+        infoMenu.getItems().add(aboutMenuItem);
+        menuBar.getMenus().addAll(fileMenu, infoMenu);
         return menuBar;
     }
 
@@ -61,4 +65,23 @@ public class MenuBarManager {
             }
         }
     }
+
+    private void showInfoDialog() {
+        Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+        infoAlert.setTitle("Informazioni");
+        infoAlert.setHeaderText("Informazioni sull'applicazione");
+        infoAlert.setContentText(
+                "Questa è un'applicazione per gestire organigrammi aziendali." + "\n" +
+                        "Funzionalità principali includono:" + "\n" +
+                        "- Aggiungere nuove unità, ruoli o dipendenti." + "\n" +
+                        "- Modificare e rimuovere unità, ruoli e dipendenti." + "\n" +
+                        "- Salvare e caricare organigrammi tramite il menu File." + "\n" +
+                        "Il nodo selezionato è indicato dal colore verde, se vuoi selezionarne un altro basta cliccarci sopra." + "\n" +
+                        "Puoi inoltre interagire con i nodi cliccando con il tasto destro:" + "\n"+
+                        "- Appariranno tre funzionalità: modifica nome del nodo," + "\n" + "visualizzazione dei ruoli o dei dipendenti dell'unità." + "\n"+
+                        "- Tramite il tasto Mostra ruoli o Mostra dipendenti potrai gestirli, eliminandoli o modificandoli."
+        );
+        infoAlert.showAndWait();
+    }
+
 }

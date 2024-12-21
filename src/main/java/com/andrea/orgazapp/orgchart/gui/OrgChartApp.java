@@ -20,12 +20,12 @@ public class OrgChartApp implements OrgChartObserver {
 
     private OrgNode root;
     private OrgNode selectedNode;
-    private HistoryCommandHandler commandHandler = new HistoryCommandHandler(100);
+    private HistoryCommandHandler commandHandler;
     private GraphicalTreeManager graphicalTreeManager;
     private TableManager tableManager;
     private Rectangle selectedRectangle;
     private final Map<String, String> roleTypeMap = new HashMap<>();
-    private ScrollPane scrollPane; // ScrollPane per il contenitore dell'organigramma
+    private ScrollPane scrollPane;
     private Stage primaryStage;
     private Pane graphicalTreePane;
     private final OrgChartCaretaker caretaker;
@@ -68,6 +68,9 @@ public class OrgChartApp implements OrgChartObserver {
         ControlBarManager controlBarManager = new ControlBarManager(this);
         layout.setBottom(controlBarManager.createControlBar());
 
+        tableManager.setupRoleTable();
+        tableManager.setupEmployeeTable();
+
         primaryStage.setScene(new Scene(layout, 800, 600));
         primaryStage.setTitle("Organigramma Aziendale");
 
@@ -98,6 +101,10 @@ public class OrgChartApp implements OrgChartObserver {
 
 
     protected void handleAddRole() {
+        if (!isNodeSelected()) {
+            showAlert("Errore", "Seleziona un'unità a cui aggiungere un ruolo.");
+            return;
+        }
 
         String unitType = selectedNode.getType();
 
@@ -107,20 +114,29 @@ public class OrgChartApp implements OrgChartObserver {
         TextField roleNameField = new TextField();
         roleNameField.setPromptText("Nome del ruolo");
 
+        CheckBox shareWithSiblingsCheckBox = new CheckBox("Condividi con tutte le unità sullo stesso livello");
+
         VBox content = new VBox(10);
         content.getChildren().addAll(
-                new Label("Nome del ruolo:"), roleNameField
+                new Label("Nome del ruolo:"), roleNameField,
+                shareWithSiblingsCheckBox
         );
-
         dialog.getDialogPane().setContent(content);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         dialog.setResultConverter(button -> {
             if (button == ButtonType.OK) {
                 String roleName = roleNameField.getText();
+                boolean shareWithSiblings = shareWithSiblingsCheckBox.isSelected();
 
                 if (roleName == null || roleName.trim().isEmpty()) {
                     showAlert("Errore", "Il nome del ruolo non può essere vuoto.");
+                    return null;
+                }
+                boolean roleExists = selectedNode.getRolesList().stream()
+                        .anyMatch(role -> role.getName().equalsIgnoreCase(roleName));
+                if (roleExists){
+                    showAlert("Errore", "Un ruolo con questo nome esiste già nell'unità selezionata.");
                     return null;
                 }
                 if (roleTypeMap.containsKey(roleName)) {
@@ -132,10 +148,21 @@ public class OrgChartApp implements OrgChartObserver {
                 } else {
                     roleTypeMap.put(roleName, unitType);
                 }
+
                 Role role = new Role(roleName, Set.of(unitType));
                 AddRoleCommand command = new AddRoleCommand(selectedNode, role);
                 commandHandler.handle(command);
 
+                if (shareWithSiblings){
+                    OrgNode parentNode = root.findNodeParent(selectedNode.getName());
+                    if(parentNode != null){
+                        for (OrgNode sibling : parentNode.getChildren()){
+                            if(!sibling.equals(selectedNode)){
+                                sibling.addRole(role);
+                            }
+                        }
+                    }
+                }
                 return null;
             }
             return null;
@@ -144,6 +171,7 @@ public class OrgChartApp implements OrgChartObserver {
         dialog.showAndWait();
 
         graphicalTreeManager.updateGraphicalTreeHighlight();
+        updateTables();
     }
 
 
@@ -258,6 +286,9 @@ public class OrgChartApp implements OrgChartObserver {
                 if (name == null || name.trim().isEmpty()) {
                     showAlert("Errore", "Il nome dell'unità non può essere vuoto.");
                     return null;
+                } else if (name.length() > 24) {
+                    showAlert("Errore", "Il nome dell'unità non può superare i 24 caratteri (spazi inclusi).");
+                    return null;
                 }
                 return name;
             }
@@ -286,6 +317,10 @@ public class OrgChartApp implements OrgChartObserver {
     }
 
     protected void handleDeleteUnit() {
+        if (!isNodeSelected()) {
+            showAlert("Errore", "Non è stata selezionata nessuna unità");
+            return;
+        }
         if(selectedNode == root){
             showAlert("Errore", "Non è possibile eliminare il nodo radice");
         }
@@ -295,11 +330,12 @@ public class OrgChartApp implements OrgChartObserver {
             RemoveNodeCommand command = new RemoveNodeCommand(parentNode, selectedNode);
             commandHandler.handle(command);
 
-            selectedNode = null;
+            selectedNode = parentNode;
             graphicalTreeManager.updateGraphicalTree();
+            graphicalTreeManager.updateGraphicalTreeHighlight();
         }
+        updateTables();
     }
-
 
 
     protected void handleUndo() {

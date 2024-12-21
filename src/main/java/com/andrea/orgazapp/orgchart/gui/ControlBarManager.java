@@ -21,7 +21,6 @@ public class ControlBarManager {
         Button undoButton = new Button("Undo");
         Button redoButton = new Button("Redo");
 
-        // Aggiungi eventi ai pulsanti
         addUnitButton.setOnAction(e -> app.handleAddUnit());
         addRoleButton.setOnAction(e -> app.handleAddRole());
         addEmployeeButton.setOnAction(e -> app.handleAddEmployee());

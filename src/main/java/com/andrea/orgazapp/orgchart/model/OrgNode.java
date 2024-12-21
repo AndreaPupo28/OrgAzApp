@@ -104,23 +104,14 @@ public abstract class OrgNode implements Originator {
     }
 
     public Collection<Employee> getEmployees() {
-        if (employees == null) {
-            employees = new HashMap<>();
-        }
         return employees.values();
     }
 
     public Collection<Role> getRolesList() {
-        if (rolesList == null) {
-            rolesList = new HashMap<>();
-        }
         return rolesList.values();
     }
 
     public void addEmployee(Employee employee) {
-        if (employees == null) {
-            employees = new HashMap<>();
-        }
         if (employees.containsKey(employee.getName())) {
             throw new IllegalArgumentException("Dipendente già presente in questo nodo.");
         }

@@ -118,6 +118,8 @@ public class GraphicalTreeManager {
             dialog.showAndWait().ifPresent(newName -> {
                 if (newName == null || newName.trim().isEmpty()) {
                     app.showAlert("Errore", "Il nome del nodo non può essere vuoto.");
+                } else if (newName.length() > 24) {
+                    app.showAlert("Errore", "Il nome del nodo non può superare i 24 caratteri (spazi inclusi).");
                 } else if (isNodeNameDuplicate(newName, app.getRoot(), node)) {
                     app.showAlert("Errore", "Un nodo con questo nome esiste già.");
                 }
