@@ -14,7 +14,7 @@ public class MenuBarManager {
         this.app = app;
     }
 
-    public MenuBar createMenuBar() {
+    protected MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
 
         Menu fileMenu = new Menu("File");

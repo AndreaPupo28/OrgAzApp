@@ -23,7 +23,7 @@ import com.andrea.orgazapp.orgchart.memento.Originator;
         @JsonSubTypes.Type(value = WorkGroup.class, name = "WorkGroup")
 })
 public abstract class OrgNode implements Originator {
-    protected String name;
+    private String name;
     private List<OrgNode> children = new ArrayList<>();
     protected String type;
 
@@ -93,8 +93,6 @@ public abstract class OrgNode implements Originator {
         notifyObservers();
     }
 
-
-
     public Map<String, Role> getRoles() {
         return roles;
     }
@@ -137,8 +135,6 @@ public abstract class OrgNode implements Originator {
         }
         return false;
     }
-
-
 
     public OrgNode findNodeParent(String childName) {
         for (OrgNode child : children) {

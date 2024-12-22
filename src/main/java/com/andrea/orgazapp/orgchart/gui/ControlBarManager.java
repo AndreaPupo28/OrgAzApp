@@ -11,7 +11,7 @@ public class ControlBarManager {
         this.app = app;
     }
 
-    public HBox createControlBar() {
+    protected HBox createControlBar() {
         HBox controls = new HBox(10);
 
         Button addUnitButton = new Button("Aggiungi Unità");

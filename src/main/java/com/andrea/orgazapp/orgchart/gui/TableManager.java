@@ -25,7 +25,7 @@ public class TableManager {
         setupRoleTable();
     }
 
-    public void updateTables(OrgNode selectedNode) {
+    protected void updateTables(OrgNode selectedNode) {
         updateEmployeeTable(selectedNode);
         updateRoleTable(selectedNode);
     }
@@ -291,23 +291,23 @@ public class TableManager {
         employeeTable.setEditable(true);
     }
 
-    public void updateEmployeeTable(OrgNode selectedNode) {
+    private void updateEmployeeTable(OrgNode selectedNode) {
         if (selectedNode != null) {
             employeeTable.getItems().setAll(selectedNode.getEmployees());
         }
     }
 
-    public void updateRoleTable(OrgNode selectedNode) {
+    private void updateRoleTable(OrgNode selectedNode) {
         if (selectedNode != null) {
             roleTable.getItems().setAll(selectedNode.getRolesList());
         }
     }
 
-    public void showEmployeeTable() {
+    protected void showEmployeeTable() {
         showTableInModal("Dipendenti", employeeTable);
     }
 
-    public void showRoleTable() {
+    protected void showRoleTable() {
         showTableInModal("Ruoli", roleTable);
     }
 

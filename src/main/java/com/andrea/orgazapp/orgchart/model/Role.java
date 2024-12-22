@@ -27,7 +27,7 @@ public class Role {
         return name;
     }
 
-    public boolean isValidForUnit(String unitType) {
+    protected boolean isValidForUnit(String unitType) {
         if (unitType == null) {
             return false;
         }
