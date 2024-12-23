@@ -8,13 +8,13 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.andrea.orgazapp.orgchart.memento.Originator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 
 //DP Composite
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
         property = "type"
 )
 @JsonSubTypes({
@@ -27,9 +27,13 @@ public abstract class OrgNode implements Originator {
     private List<OrgNode> children = new ArrayList<>();
     protected String type;
 
+    @JsonDeserialize(using = FlexibleMapDeserializer.class)
     private Map<String, Role> roles = new HashMap<>(); // Ruoli associati ai dipendenti
 
+    @JsonDeserialize(using = EmployeeMapDeserializer.class)
     private Map<String, Employee> employees = new HashMap<>();
+
+    @JsonDeserialize(using = FlexibleMapDeserializer.class)
     private Map<String, Role> rolesList = new HashMap<>();
 
     // Costruttore vuoto per Jackson
@@ -182,5 +186,4 @@ public abstract class OrgNode implements Originator {
     public List<OrgNode> getChildren() {
         return children;
     }
-
 }

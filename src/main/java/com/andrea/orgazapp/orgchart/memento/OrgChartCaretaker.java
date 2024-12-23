@@ -43,10 +43,6 @@ public class OrgChartCaretaker {
         try {
             String json = Files.readString(Paths.get(filePath));
             System.out.println(json);
-            json = json.replaceAll("\"employees\"\\s*:\\s*\\[\\s*\\{\\s*\"name\"\\s*:\\s*\"(.*?)\"\\s*}\\s*]",
-                    "\"employees\": { \"$1\": { \"name\": \"$1\" } }");
-            json = json.replaceAll("\"rolesList\"\\s*:\\s*\\[\\s*\\{\\s*\"name\"\\s*:\\s*\"(.*?)\"\\s*}\\s*]",
-                    "\"rolesList\": { \"$1\": { \"name\": \"$1\" } }");
             return mapper.readValue(json, rootType);
 
         } catch (IOException e) {
