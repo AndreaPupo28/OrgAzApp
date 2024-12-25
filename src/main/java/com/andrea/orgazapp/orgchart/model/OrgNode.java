@@ -27,13 +27,13 @@ public abstract class OrgNode implements Originator {
     private List<OrgNode> children = new ArrayList<>();
     protected String type;
 
-    @JsonDeserialize(using = FlexibleMapDeserializer.class)
+    @JsonDeserialize(using = RoleAssociationMapDeserializer.class)
     private Map<String, Role> roles = new HashMap<>(); // Ruoli associati ai dipendenti
 
     @JsonDeserialize(using = EmployeeMapDeserializer.class)
     private Map<String, Employee> employees = new HashMap<>();
 
-    @JsonDeserialize(using = FlexibleMapDeserializer.class)
+    @JsonDeserialize(using = RoleMapDeserializer.class)
     private Map<String, Role> rolesList = new HashMap<>();
 
     // Costruttore vuoto per Jackson
@@ -86,16 +86,27 @@ public abstract class OrgNode implements Originator {
         if (role == null) {
             throw new IllegalArgumentException("Ruolo non valido: il ruolo è null.");
         }
-        if (this.type == null) {
-            throw new IllegalArgumentException("Tipo di unità organizzativa non valido: il tipo è null.");
+        Role oldRole = roles.get(employee.getName());
+        if (oldRole != null && !oldRole.equals(role)) {
+            System.out.println("Sostituendo ruolo " + oldRole.getName() + " con " + role.getName());
         }
-        if (!role.isValidForUnit(this.type)) {
-            throw new IllegalArgumentException("Ruolo non valido per questa unità organizzativa. Tipo: " + this.type);
-        }
-        rolesList.putIfAbsent(role.getName(), role);
         roles.put(employee.getName(), role);
         notifyObservers();
     }
+
+    public void reconcileRoles(Map<String, Role> newRoles) {
+        for (Map.Entry<String, Role> entry : newRoles.entrySet()) {
+            String employeeName = entry.getKey();
+            Role newRole = entry.getValue();
+            if (employees.containsKey(employeeName)) {
+                assignRole(employees.get(employeeName), newRole);
+            } else {
+                System.out.println("Dipendente non trovato: " + employeeName);
+            }
+        }
+    }
+
+
 
     public Map<String, Role> getRoles() {
         return roles;
