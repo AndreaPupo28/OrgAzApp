@@ -4,6 +4,8 @@ package com.andrea.orgazapp.orgchart.command;
 import com.andrea.orgazapp.orgchart.model.OrgNode;
 import com.andrea.orgazapp.orgchart.model.Role;
 
+import java.util.Objects;
+
 public class ModifyRoleCommand implements Command {
     private final OrgNode node;
     private final Role oldRole;
@@ -36,4 +38,22 @@ public class ModifyRoleCommand implements Command {
             return false;
         }
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        ModifyRoleCommand that = (ModifyRoleCommand) obj;
+        return node.equals(that.node) &&
+                oldRole.equals(that.oldRole) &&
+                newRoleName.equals(that.newRoleName) &&
+                oldRoleName.equals(that.oldRoleName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(node, oldRole, newRoleName, oldRoleName);
+    }
+
 }

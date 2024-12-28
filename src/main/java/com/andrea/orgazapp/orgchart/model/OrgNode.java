@@ -86,10 +86,6 @@ public abstract class OrgNode implements Originator {
         if (role == null) {
             throw new IllegalArgumentException("Ruolo non valido: il ruolo è null.");
         }
-        Role oldRole = roles.get(employee.getName());
-        if (oldRole != null && !oldRole.equals(role)) {
-            System.out.println("Sostituendo ruolo " + oldRole.getName() + " con " + role.getName());
-        }
         roles.put(employee.getName(), role);
         notifyObservers();
     }
@@ -197,4 +193,18 @@ public abstract class OrgNode implements Originator {
     public List<OrgNode> getChildren() {
         return children;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        OrgNode orgNode = (OrgNode) obj;
+        return name.equalsIgnoreCase(orgNode.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name.toLowerCase());
+    }
+
 }
