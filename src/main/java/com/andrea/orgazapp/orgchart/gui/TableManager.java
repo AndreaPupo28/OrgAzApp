@@ -65,29 +65,7 @@ public class TableManager {
                 }
             }
         });
-
-
-        // Colonna Azione: Eliminazione
-        TableColumn<Role, String> roleActionCol = new TableColumn<>("Azione");
-        roleActionCol.setCellFactory(param -> new TableCell<>() {
-            private final Button deleteButton = new Button("Elimina");
-
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(deleteButton);
-                    deleteButton.setOnAction(event -> {
-                        Role role = getTableView().getItems().get(getIndex());
-                        Command command = new RemoveRoleCommand(app.getSelectedNode(), role);
-                        app.getCommandHandler().handle(command);
-                        updateTables(app.getSelectedNode());
-                    });
-                }
-            }
-        });
+        roleNameCol.setPrefWidth(150);
 
         // Colonna Azione: Modifica
         TableColumn<Role, String> roleEditCol = new TableColumn<>("Modifica");
@@ -123,14 +101,37 @@ public class TableManager {
                             }
                         });
                     });
-
                 }
             }
         });
+        roleEditCol.setPrefWidth(100);
+
+        // Colonna Azione: Eliminazione
+        TableColumn<Role, String> roleActionCol = new TableColumn<>("Azione");
+        roleActionCol.setCellFactory(param -> new TableCell<>() {
+            private final Button deleteButton = new Button("Elimina");
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(deleteButton);
+                    deleteButton.setOnAction(event -> {
+                        Role role = getTableView().getItems().get(getIndex());
+                        Command command = new RemoveRoleCommand(app.getSelectedNode(), role);
+                        app.getCommandHandler().handle(command);
+                        updateTables(app.getSelectedNode());
+                    });
+                }
+            }
+        });
+        roleActionCol.setPrefWidth(100);
 
         roleTable.getColumns().clear();
         roleTable.getColumns().addAll(roleNameCol, roleEditCol, roleActionCol);
-
+        roleTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         roleTable.setEditable(true);
     }
 
@@ -186,6 +187,7 @@ public class TableManager {
                 updateTables(app.getSelectedNode());
             }
         });
+        empNameCol.setPrefWidth(150);
 
         // Colonna Ruolo
         TableColumn<Employee, String> empRoleCol = new TableColumn<>("Ruolo");
@@ -193,6 +195,7 @@ public class TableManager {
             Role role = app.getSelectedNode().getRoles().get(cellData.getValue().getName());
             return new ReadOnlyStringWrapper((role != null) ? role.getName() : "Nessun ruolo");
         });
+        empRoleCol.setPrefWidth(150);
 
         // Colonna Azione (Eliminazione)
         TableColumn<Employee, String> empActionCol = new TableColumn<>("Azione");
@@ -216,7 +219,7 @@ public class TableManager {
                 }
             }
         });
-
+        empActionCol.setPrefWidth(120);
 
         // Colonna Modifica
         TableColumn<Employee, String> empEditCol = new TableColumn<>("Modifica");
@@ -263,7 +266,12 @@ public class TableManager {
                                     app.showAlert("Errore", "Devi selezionare un ruolo.");
                                     return null;
                                 }
-
+                                if (app.getSelectedNode().getEmployees().stream()
+                                        .anyMatch(existingEmployee -> !existingEmployee.equals(employee)
+                                                && existingEmployee.getName().equalsIgnoreCase(newName))) {
+                                    app.showAlert("Errore", "Esiste già un dipendente con questo nome nella stessa unità.");
+                                    return null;
+                                }
                                 Role oldRole = app.getSelectedNode().getRoles().get(employee.getName());
 
                                 Command command = new ModifyEmployeeCommand(
@@ -286,8 +294,11 @@ public class TableManager {
                 }
             }
         });
+        empEditCol.setPrefWidth(130);
 
+        employeeTable.getColumns().clear();
         employeeTable.getColumns().addAll(empNameCol, empRoleCol, empActionCol, empEditCol);
+        employeeTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         employeeTable.setEditable(true);
     }
 

@@ -100,9 +100,8 @@ public abstract class OrgNode implements Originator {
                 System.out.println("Dipendente non trovato: " + employeeName);
             }
         }
+        notifyObservers();
     }
-
-
 
     public Map<String, Role> getRoles() {
         return roles;
@@ -125,6 +124,7 @@ public abstract class OrgNode implements Originator {
             throw new IllegalArgumentException("Dipendente già presente in questo nodo.");
         }
         employees.put(employee.getName(), employee);
+        notifyObservers();
     }
 
     public void addRole(Role role) {
@@ -132,6 +132,7 @@ public abstract class OrgNode implements Originator {
             throw new IllegalArgumentException("Ruolo già esistente: " + role.getName());
         }
         rolesList.put(role.getName(), role);
+        notifyObservers();
     }
 
 
