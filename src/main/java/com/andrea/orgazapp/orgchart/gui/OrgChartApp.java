@@ -139,14 +139,18 @@ public class OrgChartApp implements OrgChartObserver {
                     showAlert("Errore", "Un ruolo con questo nome esiste già nell'unità selezionata.");
                     return null;
                 }
-                if (roleTypeMap.containsKey(roleName)) {
-                    String associatedType = roleTypeMap.get(roleName);
+                if (roleTypeMap.keySet().stream().anyMatch(existingRole -> existingRole.equalsIgnoreCase(roleName))) {
+                    String associatedType = roleTypeMap.entrySet().stream()
+                            .filter(entry -> entry.getKey().equalsIgnoreCase(roleName))
+                            .map(Map.Entry::getValue)
+                            .findFirst()
+                            .orElse(null);
                     if (!associatedType.equals(unitType)) {
                         showAlert("Errore", "Il ruolo \"" + roleName + "\" è già associato a un'unità di tipo " + associatedType + ".");
                         return null;
                     }
                 } else {
-                    roleTypeMap.put(roleName, unitType);
+                    roleTypeMap.put(roleName.toLowerCase(), unitType); // Salva sempre in minuscolo
                 }
 
                 Role role = new Role(roleName, Set.of(unitType));
@@ -369,6 +373,21 @@ public class OrgChartApp implements OrgChartObserver {
 
     public void setRoot(OrgNode orgNode) {
         root = orgNode;
+        roleTypeMap.clear();
+        populateRoleTypeMap(root);
+    }
+
+    private void populateRoleTypeMap(OrgNode orgNode) {
+        if (orgNode == null) return;
+        for (Role role : orgNode.getRolesList()) {
+            String roleName = role.getName().toLowerCase();
+            if (!roleTypeMap.containsKey(roleName)) {
+                roleTypeMap.put(roleName, orgNode.getType());
+            }
+        }
+        for (OrgNode child : orgNode.getChildren()) {
+            populateRoleTypeMap(child);
+        }
     }
 
     public void setSelectedNode(OrgNode node) {
