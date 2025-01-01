@@ -31,6 +31,7 @@ public class GraphicalTreeManager {
     private static final double HORIZONTAL_SPACING = 50;
     private static final double VERTICAL_SPACING = 100;
 
+
     public GraphicalTreeManager(OrgChartApp app, Pane graphicalTree, ScrollPane scrollPane) {
         this.app = app;
         this.graphicalTree = graphicalTree;
@@ -41,8 +42,9 @@ public class GraphicalTreeManager {
         graphicalTree.getChildren().clear();
 
         double contentWidth = scrollPane.getViewportBounds().getWidth();
+        double totalTreeWidth = calculateSubtreeWidth(app.getRoot());
 
-        double startX = (contentWidth - NODE_WIDTH) / 2;
+        double startX = (contentWidth - totalTreeWidth) / 2;
         double startY = 20;
 
         BoundingBox bounds = buildGraphicalTree(app.getRoot(), startX, startY, graphicalTree);
@@ -75,14 +77,15 @@ public class GraphicalTreeManager {
     }
 
     private Pane buildGraphicalSubTree(OrgNode node, double x, double y, Pane pane) {
-        Rectangle rectangle = new Rectangle(x, y, NODE_WIDTH, NODE_HEIGHT);
+        double textWidth = new Text(node.getName()).getLayoutBounds().getWidth();
+        double nodeWidth = Math.max(NODE_WIDTH, textWidth + 20);
+        Rectangle rectangle = new Rectangle(x, y, nodeWidth, NODE_HEIGHT);
         rectangle.setArcWidth(10);
         rectangle.setArcHeight(10);
         rectangle.setFill(Color.LIGHTBLUE);
         rectangle.setStroke(Color.BLACK);
 
         nodeToRectangleMap.put(node, rectangle);
-
         Text name = new Text(node.getName());
         name.setX(x + 10);
         name.setY(y + 25);
@@ -91,7 +94,6 @@ public class GraphicalTreeManager {
         pane.getChildren().addAll(rectangle, name);
 
         ContextMenu contextMenu = new ContextMenu();
-
         MenuItem showEmployeesItem = new MenuItem("Mostra Dipendenti");
         showEmployeesItem.setOnAction(e -> {
             app.setSelectedNode(node);
@@ -152,17 +154,25 @@ public class GraphicalTreeManager {
 
         int numberOfChildren = node.getChildren().size();
         if (numberOfChildren > 0) {
-            double totalWidth = numberOfChildren * (NODE_WIDTH + HORIZONTAL_SPACING) - HORIZONTAL_SPACING;
-            double childStartX = x - totalWidth / 2 + NODE_WIDTH / 2;
-
-            for (OrgNode child : node.getChildren()) {
+            double[] subtreeWidths = new double[numberOfChildren];
+            for (int i = 0; i < numberOfChildren; i++) {
+                OrgNode child = node.getChildren().get(i);
+                subtreeWidths[i] = calculateSubtreeWidth(child);
+            }
+            double totalSubtreeWidth = sum(subtreeWidths) + (numberOfChildren - 1) * HORIZONTAL_SPACING;
+            double childStartX = x - (totalSubtreeWidth - NODE_WIDTH) / 2;
+            for (int i = 0; i < numberOfChildren; i++) {
+                OrgNode child = node.getChildren().get(i);
+                double childX = childStartX + sum(subtreeWidths, 0, i) + i * HORIZONTAL_SPACING;
+                if (i > 0 && (childX - (childStartX + subtreeWidths[i - 1])) < HORIZONTAL_SPACING) {
+                    childX += HORIZONTAL_SPACING;
+                }
                 Line line = new Line(
                         x + NODE_WIDTH / 2, y + NODE_HEIGHT,
-                        childStartX + NODE_WIDTH / 2, y + NODE_HEIGHT + VERTICAL_SPACING
+                        childX + NODE_WIDTH / 2, y + NODE_HEIGHT + VERTICAL_SPACING
                 );
                 pane.getChildren().add(line);
-                buildGraphicalSubTree(child, childStartX, y + NODE_HEIGHT + VERTICAL_SPACING, pane);
-                childStartX += NODE_WIDTH + HORIZONTAL_SPACING;
+                buildGraphicalSubTree(child, childX, y + NODE_HEIGHT + VERTICAL_SPACING, pane);
             }
         }
 
@@ -173,6 +183,20 @@ public class GraphicalTreeManager {
 
         return pane;
     }
+
+    private double calculateSubtreeWidth(OrgNode node) {
+        int numberOfChildren = node.getChildren().size();
+        if (numberOfChildren == 0) {
+            return NODE_WIDTH;
+        }
+        double[] childWidths = new double[numberOfChildren];
+        for (int i = 0; i < numberOfChildren; i++) {
+            OrgNode child = node.getChildren().get(i);
+            childWidths[i] = calculateSubtreeWidth(child);
+        }
+        return sum(childWidths) + (numberOfChildren - 1) * HORIZONTAL_SPACING;
+    }
+
 
     private boolean isNodeNameDuplicate(String name, OrgNode rootNode, OrgNode currentNode) {
         if (rootNode.getName().equalsIgnoreCase(name) && !rootNode.equals(currentNode)) {
@@ -213,6 +237,18 @@ public class GraphicalTreeManager {
 
         scrollPane.setHvalue(horizontalOffset);
         scrollPane.setVvalue(verticalOffset);
+    }
+
+    private double sum(double[] values) {
+        return sum(values, 0, values.length);
+    }
+
+    private double sum(double[] values, int start, int end) {
+        double total = 0;
+        for (int i = start; i < end; i++) {
+            total += values[i];
+        }
+        return total;
     }
 
 
