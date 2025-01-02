@@ -17,5 +17,6 @@ module com.andrea.orgazapp {
     exports com.andrea.orgazapp.orgchart.model to com.fasterxml.jackson.databind;
     opens com.andrea.orgazapp.orgchart.model to com.fasterxml.jackson.databind, javafx.base;
     exports com.andrea.orgazapp.orgchart.gui;
-
+    exports com.andrea.orgazapp.orgchart.observer;
+    exports com.andrea.orgazapp.orgchart.memento;
 }

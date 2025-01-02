@@ -71,15 +71,17 @@ public class MenuBarManager {
         infoAlert.setTitle("Informazioni");
         infoAlert.setHeaderText("Informazioni sull'applicazione");
         infoAlert.setContentText(
-                "Questa è un'applicazione per gestire organigrammi aziendali." + "\n" +
-                        "Funzionalità principali includono:" + "\n" +
-                        "- Aggiungere nuove unità, ruoli o dipendenti." + "\n" +
-                        "- Modificare e rimuovere unità, ruoli e dipendenti." + "\n" +
-                        "- Salvare e caricare organigrammi tramite il menu File." + "\n" +
-                        "Il nodo selezionato è indicato dal colore verde, se vuoi selezionarne un altro basta cliccarci sopra." + "\n" +
-                        "Puoi inoltre interagire con i nodi cliccando con il tasto destro:" + "\n"+
-                        "- Appariranno tre funzionalità: modifica nome del nodo," + "\n" + "visualizzazione dei ruoli o dei dipendenti dell'unità." + "\n"+
-                        "- Tramite il tasto Mostra ruoli o Mostra dipendenti potrai gestirli, eliminandoli o modificandoli."
+                """
+                        Questa è un'applicazione per gestire organigrammi aziendali.
+                        Funzionalità principali includono:
+                        - Aggiungere nuove unità, ruoli o dipendenti.
+                        - Modificare e rimuovere unità, ruoli e dipendenti.
+                        - Salvare e caricare organigrammi tramite il menu File.
+                        Il nodo selezionato è indicato dal colore verde, se vuoi selezionarne un altro basta cliccarci sopra.
+                        Puoi inoltre interagire con i nodi cliccando con il tasto destro:
+                        - Appariranno tre funzionalità: modifica nome del nodo,
+                        visualizzazione dei ruoli o dei dipendenti dell'unità.
+                        - Tramite il tasto Mostra ruoli o Mostra dipendenti potrai gestirli, eliminandoli o modificandoli."""
         );
         infoAlert.showAndWait();
     }

@@ -129,10 +129,11 @@ public class GraphicalTreeManager {
                     ModifyNodeNameCommand command = new ModifyNodeNameCommand(node, node.getName(), newName);
                     try {
                         app.getCommandHandler().handle(command);
+                        updateGraphicalTree();
+                        updateGraphicalTreeHighlight();
                         name.setText(newName);
                         app.setSelectedNode(node);
                         app.setSelectedRectangle(rectangle);
-                        updateGraphicalTreeHighlight();
                     } catch (Exception ex) {
                         app.showAlert("Errore", "Impossibile modificare il nome del nodo.");
                     }

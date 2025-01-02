@@ -23,10 +23,6 @@ public class GenericMapDeserializer<T> extends JsonDeserializer<Map<String, T>> 
         this.objectCreator = objectCreator;
     }
 
-    public void setObjectCreator(Function<JsonNode, T> objectCreator) {
-        this.objectCreator = objectCreator;
-    }
-
     @Override
     public Map<String, T> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         if (objectCreator == null) {
