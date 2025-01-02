@@ -8,7 +8,7 @@ di un'organizzazione in modo intuitivo e interattivo.
 ---
 
 ## **ESECUZIONE**  
-Per l'esecuzione dell'applicazione bisogna eseguire la classe **MainGUI**:  
+Per l'esecuzione dell'applicazione bisogna eseguire la classe **MainGUI**: \src\main\java\com\andrea\orgazapp\orgchart\gui\MainGUI.java  
 
 
 ## **TECNOLOGIE USATE**  
