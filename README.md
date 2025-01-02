@@ -1,19 +1,25 @@
-Progetto di Ingegneria del Software 2023/24.
-Traccia: Organigramma Aziendale
-Il progetto mira allo sviluppo di un'applicazione per la gestione dinamica di organigrammi aziendali, offrendo la possibilità di aggiornare e rappresentare graficamente la struttura gerarchica di un'organizzazione in modo intuitivo e interattivo.
+## **Progetto di Ingegneria del Software 2023/24**  
+### **Traccia: Organigramma Aziendale**
 
-ESECUZIONE
-Per l'esecuzione dell'applicazione bisogna eseguire la classe MainGUI (\src\main\java\com\andrea\orgazapp\orgchart\gui\MainGUI.java).
+Il progetto mira allo sviluppo di un'applicazione per la gestione dinamica di organigrammi aziendali,  
+offrendo la possibilità di aggiornare e rappresentare graficamente la struttura gerarchica  
+di un'organizzazione in modo intuitivo e interattivo.  
 
-TECNOLOGIE USATE
-Linguaggio: Java
-Librerie grafiche: JavaFX per la gestione dell'interfaccia utente.
-Persistenza: File JSON per il salvataggio e caricamento degli organigrammi.
+---
 
-REQUISITI
-Java JDK 21 o superiore
+## **ESECUZIONE**  
+Per l'esecuzione dell'applicazione bisogna eseguire la classe **MainGUI**:  
 
-AMBIENTE DI SVILUPPO
-Intellij IDEA
+
+## **TECNOLOGIE USATE**  
+Linguaggio: Java  
+Librerie grafiche: JavaFX per la gestione dell'interfaccia utente.  
+Persistenza: File JSON per il salvataggio e caricamento degli organigrammi.  
+
+## **REQUISITI**  
+Java JDK 21 o superiore  
+
+## **AMBIENTE DI SVILUPPO**  
+Intellij IDEA  
 
 Progetto sviluppato da Andrea Pupo.
